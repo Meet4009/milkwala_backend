@@ -1,9 +1,15 @@
-
 const Customer = require('../models/customerModels');
-const customerValidation = require('../middlewares/validation');
+const customerSchema = require('../middlewares/validation');
 const { hashPassword, comparePassword } = require('../utils/secure');
 const { jwtToken, setCookie } = require('../utils/jwtToken');
 
+// Helper function to generate customer ID
+const generateCustomerID = async () => {
+    const documents = await Customer.countDocuments();
+    let customerID = String(documents).padStart(4, '0');
+    let role = documents === 0 ? "admin" : "customer";
+    return { customerID, role };
+};
 
 // Customer registration
 exports.register = async (req, res) => {
@@ -11,23 +17,13 @@ exports.register = async (req, res) => {
         const { name, phone, address, password } = req.body;
 
         // Validate
-        const { errors } = customerValidation.validate(req.body);
-        if (errors) {
-            return res.status(400).json(errors);
+        const { error } = customerSchema.validate(req.body);
+        if (error) {
+            return res.status(400).json({ message: error.details[0].message });
         }
 
         // Generate customer ID
-        const documents = await Customer.countDocuments();
-
-        let customerID;
-        let role = "customer";
-
-        if (documents === 0) {
-            customerID = String(documents).padStart(4, '0');
-            role = "admin"; // First documents is admin
-        } else {
-            customerID = String(documents).padStart(4, '0');
-        }
+        const { customerID, role } = await generateCustomerID();
 
         // Check if customer already exists
         const existingCustomer = await Customer.findOne({ phone });
@@ -47,7 +43,7 @@ exports.register = async (req, res) => {
         console.error("Error in registration:", error);
         res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
     }
-};  
+};
 
 // Customer login
 exports.login = async (req, res) => {
@@ -67,7 +63,7 @@ exports.login = async (req, res) => {
         }
 
         // Generate JWT token
-        const token = jwtToken(customerID);
+        const token = jwtToken(customer.id);
 
         // Set cookie
         setCookie(res, token);
@@ -79,55 +75,13 @@ exports.login = async (req, res) => {
     }
 };
 
-
-// Get customer details
-
-exports.getCustomerDetails = async (req, res) => {
-    const customerID = req.user.customerID;
-
-    const customer = await Customer.findOne({ customerID });
-    if (!customer) {
-        return res.status(404).json({ message: 'Customer not found' });
-    }
-
-    res.json(customer);
-}
-
-// Update customer details
-
-exports.updateCustomerDetails = async (req, res) => {
-    const customerID = req.user.customerID;
-    const { name, phone, address } = req.body;
-
-    const updatedCustomer = await Customer.findByIdAndUpdate(customerID, { name, phone, address }, { new: true });
-
-    if (!updatedCustomer) {
-        return res.status(404).json({ message: 'Customer not found' });
-    }
-
-    res.json(updatedCustomer);
-}
-
-// Delete customer
-
-exports.deleteCustomer = async (req, res) => {
-    const customerID = req.user.customerID;
-
-    const deletedCustomer = await Customer.findByIdAndDelete(customerID);
-
-    if (!deletedCustomer) {
-        return res.status(404).json({ message: 'Customer not found' });
-    }
-
-    res.json({ message: 'Customer deleted successfully' });
-}
-
 // Get all customers
-
 exports.getAllCustomers = async (req, res) => {
-    const customers = await Customer.find();
-
-    res.json(customers);
-}
-
-// Get customer orders
+    try {
+        const customers = await Customer.find();
+        res.json(customers);
+    } catch (error) {
+        console.error("Error in getting all customers:", error);
+        res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+};

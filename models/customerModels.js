@@ -2,24 +2,24 @@ const mongoose = require('mongoose')
 const bcrypt = require('bcrypt');
 
 const customerSchema = new mongoose.Schema({
-    customerID:{
-        type:String,
+    customerID: {
+        type: String,
         required: true,
         unique: true,
     },
     name: {
         type: String,
         required: true,
-        unique: true
+       
     },
-    phone:{
-        type:Number,
+    phone: {
+        type: String,
         required: true,
         unique: true,
         minlength: 10,
         maxlength: 10
     },
-    address:{
+    address: {
         type: String,
         required: true,
         minlength: 5,
@@ -27,14 +27,15 @@ const customerSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true
+        required: true,
+        minlength: 4,
     },
-    role:{
+    role: {
         type: String,
         enum: ['customer', 'admin'],
         default: 'user'
     },
-    update_At:{
+    update_At: {
         type: Date,
         default: Date.now
     },
@@ -44,15 +45,15 @@ const customerSchema = new mongoose.Schema({
     },
 });
 
-customerSchema.pre('save', async function(next) {
-    if (this.isNew) {
-        const hashedPassword = await bcrypt.hash(this.password, 10);
-        this.password = hashedPassword;
-    }
-    next();
-});
+// customerSchema.pre('save', async function(next) {
+//     if (this.isNew) {
+//         const hashedPassword = await bcrypt.hash(this.password, 10);
+//         this.password = hashedPassword;
+//     }
+//     next();
+// });
 
-customerSchema.pre('save', function(next) {
+customerSchema.pre('save', function (next) {
     this.update_At = Date.now();
     next();
 });

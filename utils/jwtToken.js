@@ -1,16 +1,24 @@
 const jwt = require('jsonwebtoken');
 
 exports.jwtToken = (ID) => {
+    const options = {
+        expiresIn: '1d',
+    };
     try {
-        return token = jwt.sign({ userId: ID }, process.env.JWT_SECRET);
+        return jwt.sign({ userId: ID }, process.env.JWT_SECRET, options);
     } catch (error) {
         console.error('Error generating JWT token:', error);
         return null;
     }
-}
+};
 
 exports.setCookie = (res, token) => {
-    res.cookie('token', token, { httpOnly: true });
+    const options = {
+        httpOnly: true, // Cookies should only be accessible by the server
+        secure: true, // Only transfer cookies over HTTPS
+        maxAge: 24 * 60 * 60 * 1000 // 1 day in milliseconds
+    };
+    res.cookie('token', token, options);
 };
 
 

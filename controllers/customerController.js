@@ -75,6 +75,18 @@ exports.login = async (req, res) => {
     }
 };
 
+// logout
+
+exports.logout = (req, res) => {
+    try {
+        res.clearCookie('token');
+        res.status(200).json({ success: true, message: 'Customer logged out successfully' });
+    } catch (error) {
+        console.error("Error in logout:", error);
+        res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+};
+
 // Get all customers
 exports.getAllCustomers = async (req, res) => {
     try {

@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
 const {connectLocalDatabase,connectAtlasDatabase} = require('./config/connection');
 const customerRoutes = require('./routes/customerRoutes');
+const milkRoute = require('./routes/milkRoutes');
 
 
 const app = express();
@@ -23,6 +24,7 @@ connectLocalDatabase();
 
 // Routes
 app.use('/api/customers', customerRoutes);
+app.use('/api/milk', milkRoute);
 
 // Start the server
 app.listen(port,() =>{

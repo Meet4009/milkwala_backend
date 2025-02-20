@@ -16,7 +16,9 @@ exports.authentication = async (req, res, next) => {
             return res.status(403).json({ message: "Unauthorized: Invalid token. Please log in again." });
         }
 
+    
         req.customer = customer;
+        console.log(req.customer);
         next();
     } catch (error) {
         console.error("Error in authentication:", error);

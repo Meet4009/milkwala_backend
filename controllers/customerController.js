@@ -77,7 +77,6 @@ exports.login = async (req, res) => {
 };
 
 // logout
-
 exports.logout = (req, res) => {
     try {
         res.clearCookie('token');
@@ -91,8 +90,12 @@ exports.logout = (req, res) => {
 // Get all customers
 exports.getAllCustomers = async (req, res) => {
     try {
-        const customers = await Customer.find();
-        res.json(customers); 
+        const customers = await Customer.find({ role: 'customer' }).sort({ customerID: 1 });
+        const totalCustomers = customers.length;
+        if (!customers) {
+            return res.status(404).json({ message: 'No customers found' });
+        }
+        res.status(200).json({ message: "All customer found", totalCustomers, customers });
     } catch (error) {
         console.error("Error in getting all customers:", error);
         res.status(500).json({ message: "Internal Server Error", error: error.message });
@@ -150,9 +153,7 @@ exports.updateCustomer = async (req, res) => {
     }
 };
 
-
 // delete customer
-
 exports.deleteCustomer = async (req, res) => {
     try {
         const { id } = req.params;

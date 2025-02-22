@@ -1,5 +1,6 @@
 const Customer = require('../models/customerModels');
-const customerSchema = require('../middlewares/validation');
+const Milk = require('../models/milkModels');
+const { customerSchema, customerUpdateSchema } = require('../middlewares/validation');
 const { hashPassword, comparePassword } = require('../utils/secure');
 const { jwtToken, setCookie } = require('../utils/jwtToken');
 
@@ -91,9 +92,81 @@ exports.logout = (req, res) => {
 exports.getAllCustomers = async (req, res) => {
     try {
         const customers = await Customer.find();
-        res.json(customers);
+        res.json(customers); 
     } catch (error) {
         console.error("Error in getting all customers:", error);
+        res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+};
+
+// getsingleCustomer
+
+exports.getsingleCustomer = async (req, res) => {
+    try {
+        const customer = await Customer.find({ customerID: req.params.id });
+        if (!customer) {
+            return res.status(404).json({ message: 'Customer not found' });
+        }
+        res.status(200).json({ message: 'Customer found', customer });
+    } catch (error) {
+        console.error("Error in getting single customer:", error);
+        res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+};
+
+// Update customer
+exports.updateCustomer = async (req, res) => {
+    try {
+        const { id } = req.params;
+        // Find existing customer
+        const existingCustomer = await Customer.findOne({ customerID: id });
+        console.log(existingCustomer.phone);
+
+        if (!existingCustomer) {
+            return res.status(404).json({ message: 'Customer not found' });
+        }
+
+        // Only update fields that are provided in req.body
+        const updatedData = {
+            name: req.body.name || existingCustomer.name,
+            phone: req.body.phone || existingCustomer.phone,
+            address: req.body.address || existingCustomer.address,
+        };
+        console.log(updatedData);
+
+        // Validate updated data
+        const { error } = customerUpdateSchema.validate(updatedData);
+        if (error) {
+            return res.status(400).json({ message: error.details[0].message });
+        }
+
+        // Update customer
+        const customer = await Customer.findByIdAndUpdate(existingCustomer.id, updatedData, { new: true });
+
+        res.status(200).json({ message: 'Customer updated successfully', customer });
+    } catch (error) {
+        console.error("Error in updating customer:", error);
+        res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+};
+
+
+// delete customer
+
+exports.deleteCustomer = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const customer = await Customer.findOneAndDelete({ customerID: id });
+
+        // delete this customer milk Data from the milk collection
+        await Milk.deleteMany({ buyerID: id });
+
+        if (!customer) {
+            return res.status(404).json({ message: 'Customer not found' });
+        }
+        res.status(200).json({ message: 'Customer deleted successfully' });
+    } catch (error) {
+        console.error("Error in deleting customer:", error);
         res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 };

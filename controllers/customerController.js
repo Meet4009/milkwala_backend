@@ -3,14 +3,9 @@ const Milk = require('../models/milkModels');
 const { customerSchema, customerUpdateSchema } = require('../middlewares/validation');
 const { hashPassword, comparePassword } = require('../utils/secure');
 const { jwtToken, setCookie } = require('../utils/jwtToken');
+const { generateCustomerID } = require('../utils/customerid');
 
-// Helper function to generate customer ID
-const generateCustomerID = async () => {
-    const documents = await Customer.countDocuments();
-    let customerID = String(documents).padStart(4, '0');
-    let role = documents === 0 ? "admin" : "customer";
-    return { customerID, role };
-};
+let deleteCustomer = [];
 
 // Customer registration
 exports.register = async (req, res) => {
@@ -24,7 +19,7 @@ exports.register = async (req, res) => {
         }
 
         // Generate customer ID
-        const { customerID, role } = await generateCustomerID();
+        const { customerID, role } = await generateCustomerID(deleteCustomer);
 
         // Check if customer already exists
         const existingCustomer = await Customer.findOne({ phone });
@@ -41,7 +36,7 @@ exports.register = async (req, res) => {
 
         res.status(201).json({ success: true, message: 'Customer registered successfully', newCustomer });
     } catch (error) {
-        console.error("Error in registration:", error);
+
         res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
     }
 };
@@ -71,18 +66,19 @@ exports.login = async (req, res) => {
 
         res.status(200).json({ success: true, message: 'Customer logged in successfully', token });
     } catch (error) {
-        console.error("Error in login:", error);
+
         res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 };
 
 // logout
+
 exports.logout = (req, res) => {
     try {
         res.clearCookie('token');
         res.status(200).json({ success: true, message: 'Customer logged out successfully' });
     } catch (error) {
-        console.error("Error in logout:", error);
+
         res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 };
@@ -90,14 +86,14 @@ exports.logout = (req, res) => {
 // Get all customers
 exports.getAllCustomers = async (req, res) => {
     try {
-        const customers = await Customer.find({ role: 'customer' }).sort({ customerID: 1 });
-        const totalCustomers = customers.length;
-        if (!customers) {
-            return res.status(404).json({ message: 'No customers found' });
+        const customers = await Customer.find().sort({ customerID: 1 });
+        if (customers.length === 0) {
+            return res.status(200).json({ message: 'No customers' });
         }
-        res.status(200).json({ message: "All customer found", totalCustomers, customers });
+        const totalCustomers = customers.length;
+        res.status(200).json({ message: "All Customers", totalCustomers, customers });
     } catch (error) {
-        console.error("Error in getting all customers:", error);
+
         res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 };
@@ -112,7 +108,7 @@ exports.getsingleCustomer = async (req, res) => {
         }
         res.status(200).json({ message: 'Customer found', customer });
     } catch (error) {
-        console.error("Error in getting single customer:", error);
+
         res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 };
@@ -123,7 +119,6 @@ exports.updateCustomer = async (req, res) => {
         const { id } = req.params;
         // Find existing customer
         const existingCustomer = await Customer.findOne({ customerID: id });
-        console.log(existingCustomer.phone);
 
         if (!existingCustomer) {
             return res.status(404).json({ message: 'Customer not found' });
@@ -135,8 +130,7 @@ exports.updateCustomer = async (req, res) => {
             phone: req.body.phone || existingCustomer.phone,
             address: req.body.address || existingCustomer.address,
         };
-        console.log(updatedData);
-
+   
         // Validate updated data
         const { error } = customerUpdateSchema.validate(updatedData);
         if (error) {
@@ -148,16 +142,21 @@ exports.updateCustomer = async (req, res) => {
 
         res.status(200).json({ message: 'Customer updated successfully', customer });
     } catch (error) {
-        console.error("Error in updating customer:", error);
+
         res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 };
-
 // delete customer
 exports.deleteCustomer = async (req, res) => {
     try {
         const { id } = req.params;
         const customer = await Customer.findOneAndDelete({ customerID: id });
+
+        // get the customer ID and push it to the deleteCustomer array
+        const customerID = parseInt(customer.customerID);
+        deleteCustomer.push(customerID);
+        // sort the customer
+        deleteCustomer.sort((a, b) => a - b);
 
         // delete this customer milk Data from the milk collection
         await Milk.deleteMany({ buyerID: id });
@@ -167,7 +166,6 @@ exports.deleteCustomer = async (req, res) => {
         }
         res.status(200).json({ message: 'Customer deleted successfully' });
     } catch (error) {
-        console.error("Error in deleting customer:", error);
         res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 };

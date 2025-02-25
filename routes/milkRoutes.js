@@ -7,9 +7,12 @@ const { authentication, authorize } = require('../middlewares/auth');
 // Admin routes
 
 route.post('/create/:id', authentication, authorize, milkControl.create);
-route.get('/data/find/:id', authentication, authorize, milkControl.getMilkDataByMonth);
-route.get('/sale/data/:id', authentication, authorize, milkControl.getMonthlysales);
-route.get('/find', authentication, authorize, milkControl.getAllMilkData);
+route.get('/monthly-data/:id', authentication, authorize, milkControl.getMonthlyMilkDataById);
+route.get('/monthly-sales/:id', authentication, authorize, milkControl.getMonthlySalesSummaryByID);
+route.get('/monthly-data', authentication, authorize, milkControl.getMonthlyMilkData);
+route.get('/monthly-sales', authentication, authorize, milkControl.getMonthlySalesSummary);
+
+
 
 
 module.exports = route;

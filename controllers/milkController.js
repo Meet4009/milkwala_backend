@@ -2,7 +2,7 @@ const Milk = require('../models/milkModels');
 const Customer = require('../models/customerModels');
 const { message } = require('../middlewares/validation');
 
-// Create milk
+
 exports.create = async (req, res) => {
     try {
         const { id } = req.params;
@@ -33,8 +33,7 @@ exports.create = async (req, res) => {
     }
 }
 
-// monthly record
-exports.getMilkDataByMonth = async (req, res) => {
+exports.getMonthlyMilkDataById = async (req, res) => {
     try {
         const { id } = req.params;
         const month = parseInt(req.query.month) || new Date().getMonth() + 1;
@@ -72,8 +71,7 @@ exports.getMilkDataByMonth = async (req, res) => {
     }
 };
 
-// get monthly sales
-exports.getMonthlysales = async (req, res) => {
+exports.getMonthlySalesSummaryByID = async (req, res) => {
     try {
         const { id } = req.params;
         const month = parseInt(req.query.month) || new Date().getMonth() + 1;
@@ -121,8 +119,49 @@ exports.getMonthlysales = async (req, res) => {
     }
 };
 
-// Get All MIlk data
-exports.getAllMilkData = async (req, res) => {
+exports.getMonthlyMilkData = async (req, res) => {
+    try {
+        const month = parseInt(req.query.month) || new Date().getMonth() + 1;
+
+        if (month < 1 || month > 12) {
+            return res.status(400).json({ message: "Invalid month value. Please provide a month between 1 and 12." });
+        }
+
+        const today = new Date();
+        const currentMonth = today.getMonth(); // 0-based index (Jan = 0)
+        const currentYear = today.getFullYear();
+
+        let startOfMonth, endOfMonth;
+
+        if (month - 1 > currentMonth) {             // Previous year data
+            startOfMonth = new Date(currentYear - 1, month - 1, 1);
+            endOfMonth = new Date(currentYear - 1, month, 0, 23, 59, 59, 999);
+        } else {                                    // Current year data
+            startOfMonth = new Date(currentYear, month - 1, 1);
+            endOfMonth = new Date(currentYear, month, 0, 23, 59, 59, 999);
+        }
+
+        const milkData = await Milk.find({
+            date: {
+                $gte: startOfMonth,
+                $lte: endOfMonth
+            },
+        });
+     
+        if (milkData.length === 0) {
+            return res.status(200).json({ message: "Milk data not found" });
+        }
+
+        res.status(200).json({
+            message: "Milk data found",
+            milkData
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+}
+
+exports.getMonthlySalesSummary = async (req, res) => {
     try {
         const month = parseInt(req.query.month) || new Date().getMonth() + 1;
 

@@ -1,15 +1,15 @@
 const express = require('express');
-
 const route = express.Router();
 
 const milkControl = require('../controllers/milkController');
-
 const { authentication, authorize } = require('../middlewares/auth');
 
-route.post('/create/:id', authentication, authorize, milkControl.createMilkData);
+// Admin routes
+
+route.post('/create/:id', authentication, authorize, milkControl.create);
+route.get('/data/find/:id', authentication, authorize, milkControl.getMilkDataByMonth);
+route.get('/sale/data/:id', authentication, authorize, milkControl.getMonthlysales);
 route.get('/find', authentication, authorize, milkControl.getAllMilkData);
-route.get('/find/:id', authentication, authorize, milkControl.getMilkDataByBuyerID);
-route.get('/find/monthlydata/:id', authentication, authorize, milkControl.getMilkDataByMonth);
 
 
 module.exports = route;

@@ -23,7 +23,7 @@ connectLocalDatabase();
 
 
 // Routes
-app.use('/api/customers', customerRoutes);
+app.use('/api/customer', customerRoutes);
 app.use('/api/milk', milkRoute);
 
 // Start the server

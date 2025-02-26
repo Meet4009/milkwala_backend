@@ -1,9 +1,9 @@
 const Customer = require('../models/customerModels');
 const Milk = require('../models/milkModels');
 const { customerSchema, customerUpdateSchema } = require('../middlewares/validation');
-const { hashPassword, comparePassword } = require('../utils/secure');
-const { jwtToken, setCookie } = require('../utils/jwtToken');
-const { generateCustomerID } = require('../utils/generateCusID');
+const { hashPassword, comparePassword } = require('../utils/passwordUtils');
+const { jwtToken, setCookie } = require('../utils/jwtHelper');
+const { generateCustomerID } = require('../utils/customerHelpers');
 
 let deleteCustomer = [];
 

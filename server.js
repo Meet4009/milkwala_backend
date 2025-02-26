@@ -16,10 +16,10 @@ const port = process.env.PORT || 5555;
 // Connect to the database
 
 // Connect to MongoDB Atlas database
-connectAtlasDatabase();
+// connectAtlasDatabase();
 
 // Connect to local MongoDB database
-// connectLocalDatabase();
+connectLocalDatabase();
 
 
 // Routes

@@ -36,7 +36,7 @@ exports.register = async (req, res) => {
 
         res.status(201).json({ success: true, message: 'Customer registered successfully', newCustomer });
     } catch (error) {
-
+        console.error("Error in customer registration", error);
         res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
     }
 };
@@ -66,7 +66,7 @@ exports.login = async (req, res) => {
 
         res.status(200).json({ success: true, message: 'Customer logged in successfully', token });
     } catch (error) {
-
+        console.error("Error in customer login", error);
         res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 };
@@ -78,7 +78,7 @@ exports.logout = (req, res) => {
         res.clearCookie('token');
         res.status(200).json({ success: true, message: 'Customer logged out successfully' });
     } catch (error) {
-
+        console.error("Error in customer logout", error);
         res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 };
@@ -93,7 +93,7 @@ exports.getAllCustomers = async (req, res) => {
         const totalCustomers = customers.length;
         res.status(200).json({ message: "All Customers", totalCustomers, customers });
     } catch (error) {
-
+        console.error("Error in getting all customers", error);
         res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 };
@@ -108,7 +108,7 @@ exports.getsingleCustomer = async (req, res) => {
         }
         res.status(200).json({ message: 'Customer found', customer });
     } catch (error) {
-
+        console.error("Error in getting single customer", error);
         res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 };
@@ -142,7 +142,7 @@ exports.updateCustomer = async (req, res) => {
 
         res.status(200).json({ message: 'Customer updated successfully', customer });
     } catch (error) {
-
+        console.error("Error in updating customer", error);
         res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 };
@@ -166,6 +166,7 @@ exports.deleteCustomer = async (req, res) => {
         }
         res.status(200).json({ message: 'Customer deleted successfully' });
     } catch (error) {
+        console.error("Error in deleting customer", error);
         res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
 };
